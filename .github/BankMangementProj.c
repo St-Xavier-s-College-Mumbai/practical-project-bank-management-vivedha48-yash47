@@ -20,12 +20,30 @@ Account accounts[MAX_ACCOUNTS];
 int accountCount = 0;
 
 int isValidPhoneNumber(const char *phone) {
-    // Simple validation for phone number (length and digits)
+    // Validate phone number (length and digits)
     if (strlen(phone) != 10) return 0;
     for (int i = 0; i < 10; i++) {
         if (!isdigit(phone[i])) return 0;
     }
     return 1;
+}
+
+void saveToFile() {
+    FILE *file = fopen("store.txt", "w");  // Open file for writing (overwrite mode)
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    for (int i = 0; i < accountCount; i++) {
+        fprintf(file, "Account Number: %d\n", accounts[i].accountNumber);
+        fprintf(file, "Full Name: %s\n", accounts[i].fullName);
+        fprintf(file, "Address: %s\n", accounts[i].address);
+        fprintf(file, "Phone Number: %s\n", accounts[i].phoneNumber);
+        fprintf(file, "Balance: %.2f\n\n", accounts[i].balance);
+    }
+
+    fclose(file);  // Close the file
 }
 
 void createAccount() {
@@ -38,23 +56,25 @@ void createAccount() {
     newAccount.accountNumber = accountCount + 1;
 
     printf("Enter account holder's full name: ");
-    scanf(" %[^\n]", newAccount.fullName); // Read full name including spaces
-    
+    scanf(" %[^\n]", newAccount.fullName);
+
     printf("Enter address: ");
-    scanf(" %[^\n]", newAccount.address); // Read address including spaces
+    scanf(" %[^\n]", newAccount.address);
 
     printf("Enter phone number (10 digits): ");
-    scanf(" %[^\n]", newAccount.phoneNumber); // Read phone number
+    scanf(" %[^\n]", newAccount.phoneNumber);
 
-    // Validate phone number
     if (!isValidPhoneNumber(newAccount.phoneNumber)) {
         printf("Invalid phone number. It must be 10 digits long.\n");
         return;
     }
-    
-    newAccount.balance = 0.0; // Initial balance is 0
+
+    newAccount.balance = 0.0;
     accounts[accountCount] = newAccount;
     accountCount++;
+
+    saveToFile();  // Save to file after account creation
+
     printf("Account created successfully! Account Number: %d\n", newAccount.accountNumber);
 }
 
@@ -64,7 +84,7 @@ void deposit() {
 
     printf("Enter account number: ");
     scanf("%d", &accountNumber);
-    
+
     if (accountNumber < 1 || accountNumber > accountCount) {
         printf("Invalid account number.\n");
         return;
@@ -77,8 +97,10 @@ void deposit() {
         printf("Deposit amount must be greater than zero.\n");
         return;
     }
-    
+
     accounts[accountNumber - 1].balance += amount;
+    saveToFile();  // Save changes to file after deposit
+
     printf("Deposited %.2f to account number %d. New balance: %.2f\n",
            amount, accountNumber, accounts[accountNumber - 1].balance);
 }
@@ -89,7 +111,7 @@ void withdraw() {
 
     printf("Enter account number: ");
     scanf("%d", &accountNumber);
-    
+
     if (accountNumber < 1 || accountNumber > accountCount) {
         printf("Invalid account number.\n");
         return;
@@ -97,7 +119,7 @@ void withdraw() {
 
     printf("Enter amount to withdraw: ");
     scanf("%f", &amount);
-    
+
     if (amount <= 0) {
         printf("Withdrawal amount must be greater than zero.\n");
         return;
@@ -109,6 +131,8 @@ void withdraw() {
     }
 
     accounts[accountNumber - 1].balance -= amount;
+    saveToFile();  // Save changes to file after withdrawal
+
     printf("Withdrew %.2f from account number %d. New balance: %.2f\n",
            amount, accountNumber, accounts[accountNumber - 1].balance);
 }
@@ -118,7 +142,7 @@ void checkBalance() {
 
     printf("Enter account number: ");
     scanf("%d", &accountNumber);
-    
+
     if (accountNumber < 1 || accountNumber > accountCount) {
         printf("Invalid account number.\n");
         return;
